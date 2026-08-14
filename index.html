@@ -241,6 +241,48 @@
 <script>
 (function(){
   var fortunes = [
+    // — whimsy & wonder —
+    "You are wonderful: full of wonder.",
+    "You are precious: one of a kind, unique.",
+    "The sun and the moon both shine upon you.",
+    "Today will bring an adventure.",
+    "You are marvelous: a small living marvel.",
+    "You are splendid: you were made to shine.",
+    "You are radiant: light gathers where you go.",
+    "You are luminous: even your shadows glow.",
+    "You are extraordinary: ordinary was never your size.",
+    "You are enchanting: the world leans in to listen.",
+    "You are magnificent: made on a generous day.",
+    "You are dazzling: even sleepy mornings can't hide it.",
+    "You are brilliant: a spark the dark can't dim.",
+    "You are golden: warmth follows wherever you turn.",
+    "You are beloved: cherished more than you know.",
+    "You are treasured: rare, and impossibly you.",
+    "You are a marvel wrapped in an ordinary day.",
+    "The stars rearranged themselves the night you were born.",
+    "Stardust settled in you and never left.",
+    "The moon keeps a little light aside just for you.",
+    "The morning dew was polished especially for you.",
+    "Somewhere, a flower opened just to greet you.",
+    "Birds are already singing about your good day.",
+    "The wind is carrying good news toward you.",
+    "A gentle magic follows you through today.",
+    "A small wonder is hiding in your pocket today.",
+    "Wonder is waiting at the edge of your afternoon.",
+    "Delight is on its way, and it knows your name.",
+    "Something lovely is about to find you.",
+    "A secret door of luck swings open in your favor.",
+    "Good fortune has taken a liking to you.",
+    "Curiosity will hand you a small treasure today.",
+    "Laughter is on the guest list for your day.",
+    "A quiet joy is threading its way toward your evening.",
+    "You are blooming, in your own perfect season.",
+    "You are gentle and strong, like the tide.",
+    "You are kind: the world softens where you touch it.",
+    "You are a delight: the day is happier for having you.",
+    "You are cherished: kept close in someone's heart.",
+    "You are a wonder-full thing, brimming with wonder.",
+    // — gentle wisdom —
     "The path you're hesitating on is already yours. Take the first step.",
     "Someone will remember today because of a small kindness you show them.",
     "You are closer to your goal than your doubts allow you to believe.",
@@ -281,12 +323,24 @@
   var STORAGE_KEY = "fortuneCookie:v1";
   var DAY_MS = 24 * 60 * 60 * 1000;
 
-  function pickIndex(avoidIndex){
-    var i = Math.floor(Math.random() * fortunes.length);
-    if (fortunes.length > 1 && i === avoidIndex){
-      i = (i + 1) % fortunes.length;
+  // Pick a fortune the user hasn't seen yet. `seen` is the list of
+  // already-shown indices; it is mutated (reset) when the pool runs out.
+  function pickIndex(seen){
+    var available = [];
+    for (var i = 0; i < fortunes.length; i++){
+      if (seen.indexOf(i) === -1) available.push(i);
     }
-    return i;
+    // Every fortune has been seen — start a fresh cycle, but don't repeat
+    // the most recent one back-to-back.
+    if (available.length === 0){
+      var last = seen.length ? seen[seen.length - 1] : -1;
+      seen.length = 0;
+      for (var j = 0; j < fortunes.length; j++){
+        if (fortunes.length > 1 && j === last) continue;
+        available.push(j);
+      }
+    }
+    return available[Math.floor(Math.random() * available.length)];
   }
 
   function luckyNumbers(){
@@ -308,11 +362,14 @@
   if (stored && stored.ts && (now - stored.ts) < DAY_MS && typeof stored.index === "number"){
     record = stored;
   } else {
-    var prevIndex = stored ? stored.index : -1;
+    var seen = (stored && Array.isArray(stored.seen)) ? stored.seen.slice() : [];
+    var index = pickIndex(seen);   // may reset `seen` if the pool is exhausted
+    seen.push(index);
     record = {
-      index: pickIndex(prevIndex),
+      index: index,
       numbers: luckyNumbers(),
-      ts: now
+      ts: now,
+      seen: seen
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(record)); } catch(e){}
   }
