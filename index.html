@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Your Fortune</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Special+Elite&family=Inter:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E7D6A8;
+    --paper-deep:#D0BA84;
+    --ink:#3E2C1C;
+    --ink-soft:#5B4630;
+    --lacquer:#A2323A;
+    --gold:#AD7C33;
+    --slip:#FBF2DC;
+    --slip-shadow:#e6d6ac;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+
+  html,body{
+    margin:0; height:100%;
+    background:
+      radial-gradient(120% 90% at 50% 0%, var(--paper) 0%, var(--paper-deep) 100%);
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+
+  /* subtle paper grain */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    opacity:.5;
+    mix-blend-mode:multiply;
+    background-image:
+      radial-gradient(rgba(62,44,28,.06) 1px, transparent 1px),
+      radial-gradient(rgba(62,44,28,.04) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 2px 3px;
+  }
+
+  .stage{
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding: 8vh 6vw 10vh;
+    position:relative;
+  }
+
+  .eyebrow{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:.68rem;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:2.2rem;
+    opacity:0;
+    animation: fadeUp .7s ease .15s forwards;
+  }
+
+  /* ---------- cookie ---------- */
+  .cookie-wrap{
+    position:relative;
+    width:min(58vw, 220px);
+    aspect-ratio:1/1;
+    margin-bottom: 1.4rem;
+  }
+
+  .crumb{
+    position:absolute;
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #E9C77C, var(--gold) 75%);
+    opacity:0;
+  }
+
+  .half{
+    position:absolute;
+    top:0; left:0; width:100%; height:100%;
+    filter: drop-shadow(0 10px 14px rgba(62,44,28,.28));
+  }
+  .half svg{ width:100%; height:100%; display:block; }
+
+  .half-left{ transform-origin: 50% 85%; }
+  .half-right{ transform-origin: 50% 85%; }
+
+  .stage.cracked .half-left{
+    animation: crackLeft .65s cubic-bezier(.34,1.4,.5,1) .05s forwards;
+  }
+  .stage.cracked .half-right{
+    animation: crackRight .65s cubic-bezier(.34,1.4,.5,1) .05s forwards;
+  }
+  .stage.cracked .crumb{
+    animation: crumbPop .7s ease .15s forwards;
+  }
+
+  @keyframes crackLeft{
+    0%{ transform:rotate(0deg) translate(0,0); }
+    100%{ transform:rotate(-26deg) translate(-14%, 4%); }
+  }
+  @keyframes crackRight{
+    0%{ transform:rotate(0deg) translate(0,0); }
+    100%{ transform:rotate(24deg) translate(14%, 4%); }
+  }
+  @keyframes crumbPop{
+    0%{ opacity:0; transform:scale(.3) translateY(0); }
+    40%{ opacity:1; }
+    100%{ opacity:0; transform:scale(1) translateY(18px); }
+  }
+
+  /* ---------- slip ---------- */
+  .slip-slot{
+    position:relative;
+    width:min(84vw, 360px);
+    display:flex;
+    justify-content:center;
+  }
+
+  .slip{
+    position:relative;
+    width:100%;
+    background:var(--slip);
+    padding: 2.1rem 1.7rem 1.9rem;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.5) inset,
+      0 18px 30px -14px rgba(62,44,28,.45);
+    opacity:0;
+    transform: translateY(28px) scale(.94);
+    clip-path: polygon(
+      1% 8%, 4% 2%, 9% 6%, 14% 1%, 20% 5%, 26% 1%, 32% 6%, 38% 2%,
+      44% 6%, 50% 1%, 56% 6%, 62% 2%, 68% 6%, 74% 1%, 80% 5%, 86% 1%,
+      91% 6%, 96% 2%, 99% 8%,
+      99% 92%, 96% 98%, 91% 94%, 86% 99%, 80% 95%, 74% 99%, 68% 94%,
+      62% 98%, 56% 94%, 50% 99%, 44% 94%, 38% 98%, 32% 94%, 26% 99%,
+      20% 95%, 14% 99%, 9% 94%, 4% 98%, 1% 92%
+    );
+  }
+
+  .stage.cracked .slip{
+    animation: slipRise .7s cubic-bezier(.2,.9,.25,1.05) .32s forwards;
+  }
+
+  @keyframes slipRise{
+    0%{ opacity:0; transform:translateY(28px) scale(.94); }
+    60%{ opacity:1; }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  .fortune-text{
+    font-family:'Special Elite', monospace;
+    font-size: clamp(1.02rem, 4.6vw, 1.2rem);
+    line-height:1.62;
+    color: var(--ink);
+    text-align:center;
+    letter-spacing:.01em;
+  }
+
+  .divider{
+    width:34px; height:1px;
+    background: var(--gold);
+    opacity:.55;
+    margin: 1.1rem auto;
+  }
+
+  .numbers{
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+    font-size:.72rem;
+    letter-spacing:.16em;
+    text-align:center;
+    color: var(--ink-soft);
+    opacity:.7;
+  }
+  .numbers span{ margin: 0 .35em; }
+
+  .again{
+    margin-top: 2.4rem;
+    font-family:'Inter',sans-serif;
+    font-size:.66rem;
+    font-weight:500;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color: var(--ink-soft);
+    opacity:0;
+    text-align:center;
+    max-width:280px;
+    line-height:1.7;
+  }
+  .stage.cracked .again{
+    animation: fadeUp .7s ease .9s forwards;
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(8px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .half-left,.half-right,.crumb,.slip,.again,.eyebrow{
+      animation-duration:.01ms !important;
+      animation-delay:0s !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="eyebrow">A little fortune for you</div>
+
+  <div class="cookie-wrap" aria-hidden="true">
+    <div class="half half-left">
+      <svg viewBox="0 0 100 100"><path d="M50 8 C20 8 6 34 6 55 C6 55 22 40 50 50 C50 50 50 20 50 8 Z" fill="#C89550"/><path d="M50 8 C20 8 6 34 6 55 C6 55 22 40 50 50 Z" fill="url(#g1)"/><defs><radialGradient id="g1" cx="30%" cy="20%" r="90%"><stop offset="0%" stop-color="#E3B36B"/><stop offset="100%" stop-color="#B87F3E"/></radialGradient></defs></svg>
+    </div>
+    <div class="half half-right">
+      <svg viewBox="0 0 100 100"><path d="M50 8 C80 8 94 34 94 55 C94 55 78 40 50 50 C50 50 50 20 50 8 Z" fill="#C89550"/><path d="M50 8 C80 8 94 34 94 55 C94 55 78 40 50 50 Z" fill="url(#g2)"/><defs><radialGradient id="g2" cx="70%" cy="20%" r="90%"><stop offset="0%" stop-color="#E3B36B"/><stop offset="100%" stop-color="#B87F3E"/></radialGradient></defs></svg>
+    </div>
+    <div class="crumb" style="width:7px; top:52%; left:30%;"></div>
+    <div class="crumb" style="width:5px; top:58%; left:64%;"></div>
+    <div class="crumb" style="width:4px; top:48%; left:48%;"></div>
+  </div>
+
+  <div class="slip-slot">
+    <div class="slip">
+      <div class="fortune-text" id="fortuneText">Loading your fortune&hellip;</div>
+      <div class="divider"></div>
+      <div class="numbers" id="luckyNumbers"></div>
+    </div>
+  </div>
+
+  <div class="again">Your fortune is sealed for 24 hours —<br>come back tomorrow for a new one.</div>
+</div>
+
+<script>
+(function(){
+  var fortunes = [
+    "The path you're hesitating on is already yours. Take the first step.",
+    "Someone will remember today because of a small kindness you show them.",
+    "You are closer to your goal than your doubts allow you to believe.",
+    "Rest is not the opposite of progress. It is part of it.",
+    "A door you stopped watching is about to open quietly.",
+    "Your steady effort is noticed, even when no one says so.",
+    "The thing you're avoiding is smaller than the fear of it.",
+    "Good things are gathering just out of sight. Keep walking toward them.",
+    "You will surprise yourself this week with what you're capable of.",
+    "Let today be simple. Simple is enough.",
+    "The version of you a year from now is grateful for what you start today.",
+    "Trust the timing of your life, even the slow parts.",
+    "Your patience with yourself is a kind of quiet courage.",
+    "Someone believes in you more than you know.",
+    "What feels like a detour is teaching you something the straight path couldn't.",
+    "You don't need to have it all figured out to take the next step.",
+    "Joy is allowed to be small and ordinary. Let it in.",
+    "The effort you almost gave up on is closer to paying off than you think.",
+    "You are allowed to outgrow what no longer fits.",
+    "A conversation you've been putting off will lighten something in you.",
+    "Your calm is a gift to everyone around you today.",
+    "Small steady steps are quietly building something big.",
+    "The right people are already finding their way to you.",
+    "You have survived every hard day so far. That is not luck. That is you.",
+    "Today holds one good thing you haven't noticed yet.",
+    "Let yourself be proud of how far you've already come.",
+    "Something you're worried about will resolve more gently than expected.",
+    "Your curiosity is leading you somewhere worth going.",
+    "You are not behind. You are exactly where your story needs you.",
+    "Kindness toward yourself is not a luxury today. It's the plan.",
+    "The seed you planted quietly is closer to breaking ground.",
+    "You will find the words you need exactly when you need them.",
+    "Slow progress is still progress worth celebrating.",
+    "Someone is grateful to have you in their life, even if they haven't said it lately.",
+    "This chapter is shorter than it feels. Keep turning the page."
+  ];
+
+  var STORAGE_KEY = "fortuneCookie:v1";
+  var DAY_MS = 24 * 60 * 60 * 1000;
+
+  function pickIndex(avoidIndex){
+    var i = Math.floor(Math.random() * fortunes.length);
+    if (fortunes.length > 1 && i === avoidIndex){
+      i = (i + 1) % fortunes.length;
+    }
+    return i;
+  }
+
+  function luckyNumbers(){
+    var nums = new Set();
+    while(nums.size < 6){
+      nums.add(1 + Math.floor(Math.random() * 49));
+    }
+    return Array.from(nums).sort(function(a,b){return a-b;});
+  }
+
+  var stored = null;
+  try {
+    stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  } catch(e){ stored = null; }
+
+  var now = Date.now();
+  var record;
+
+  if (stored && stored.ts && (now - stored.ts) < DAY_MS && typeof stored.index === "number"){
+    record = stored;
+  } else {
+    var prevIndex = stored ? stored.index : -1;
+    record = {
+      index: pickIndex(prevIndex),
+      numbers: luckyNumbers(),
+      ts: now
+    };
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(record)); } catch(e){}
+  }
+
+  document.getElementById("fortuneText").textContent = fortunes[record.index];
+  document.getElementById("luckyNumbers").innerHTML =
+    record.numbers.map(function(n){ return "<span>" + n + "</span>"; }).join("");
+
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      document.getElementById("stage").classList.add("cracked");
+    }, 120);
+  });
+})();
+</script>
+
+</body>
+</html>
