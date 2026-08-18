@@ -197,6 +197,28 @@
     animation: fadeUp .7s ease .9s forwards;
   }
 
+  .source{
+    margin-top: 1.4rem;
+    font-family:'Inter',sans-serif;
+    font-size:.6rem;
+    font-weight:500;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    text-align:center;
+    opacity:0;
+  }
+  .source a{
+    color: var(--gold);
+    text-decoration:none;
+    border-bottom:1px solid rgba(173,124,51,.4);
+    padding-bottom:1px;
+    transition: border-color .2s ease;
+  }
+  .source a:hover{ border-color: var(--gold); }
+  .stage.cracked .source{
+    animation: fadeUp .7s ease 1.05s forwards;
+  }
+
   @keyframes fadeUp{
     from{ opacity:0; transform:translateY(8px); }
     to{ opacity:1; transform:translateY(0); }
@@ -236,6 +258,8 @@
   </div>
 
   <div class="again">Your fortune is sealed for 24 hours —<br>come back tomorrow for a new one.</div>
+
+  <div class="source"><a href="https://github.com/scrypt-kitty/fortunate" target="_blank" rel="noopener">Source</a></div>
 </div>
 
 <script>
