@@ -219,6 +219,41 @@
     animation: fadeUp .7s ease 1.05s forwards;
   }
 
+  /* ---------- cookie consent ---------- */
+  .cookie-banner{
+    position:fixed;
+    left:50%; bottom:16px;
+    transform:translate(-50%, 170%);
+    width:min(92vw, 430px);
+    background:var(--slip);
+    color:var(--ink-soft);
+    padding:.95rem 1.1rem 1rem;
+    border-radius:16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.55) inset,
+      0 16px 34px -14px rgba(62,44,28,.55);
+    font-family:'Inter',sans-serif;
+    font-size:.72rem;
+    line-height:1.55;
+    z-index:60;
+    transition: transform .55s cubic-bezier(.2,.9,.25,1.05);
+  }
+  .cookie-banner.show{ transform:translate(-50%, 0); }
+  .cookie-banner p{ margin:0 0 .8rem; }
+  .cb-emoji{ font-size:1rem; }
+  .cb-actions{ display:flex; gap:.55rem; justify-content:flex-end; }
+  .cookie-banner button{
+    font-family:'Inter',sans-serif;
+    font-size:.62rem; font-weight:600;
+    letter-spacing:.12em; text-transform:uppercase;
+    border-radius:9px; padding:.52rem .95rem;
+    cursor:pointer;
+    transition: transform .12s ease;
+  }
+  .cookie-banner button:active{ transform:translateY(1px); }
+  .cb-accept{ background:var(--lacquer); color:var(--slip); border:none; }
+  .cb-reject{ background:transparent; color:var(--ink-soft); border:1px solid rgba(91,70,48,.28); }
+
   @keyframes fadeUp{
     from{ opacity:0; transform:translateY(8px); }
     to{ opacity:1; transform:translateY(0); }
@@ -229,6 +264,7 @@
       animation-duration:.01ms !important;
       animation-delay:0s !important;
     }
+    .cookie-banner{ transition-duration:.01ms !important; }
   }
 </style>
 </head>
@@ -260,6 +296,14 @@
   <div class="again">Your fortune is sealed for 24 hours —<br>come back tomorrow for a new one.</div>
 
   <div class="source"><a href="https://github.com/scrypt-kitty/fortunate" target="_blank" rel="noopener">Source</a></div>
+</div>
+
+<div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie notice">
+  <p><span class="cb-emoji">🥠</span> This site keeps just one cookie &mdash; the fortune kind. It remembers today's fortune on your device for 24 hours, then forgets. Nothing is ever sent, analyzed, or sold.</p>
+  <div class="cb-actions">
+    <button class="cb-reject" id="cbReject" type="button">No thanks</button>
+    <button class="cb-accept" id="cbAccept" type="button">Accept</button>
+  </div>
 </div>
 
 <script>
@@ -375,10 +419,30 @@
     return Array.from(nums).sort(function(a,b){return a-b;});
   }
 
+  // Consent is itself a tiny, self-expiring flag (24h), so everything this
+  // site keeps lives for a day and then forgets — nothing leaves the device.
+  var CONSENT_KEY = "fortuneConsent:v1";
+
+  function getConsent(){
+    try {
+      var c = JSON.parse(localStorage.getItem(CONSENT_KEY));
+      if (c && c.ts && (Date.now() - c.ts) < DAY_MS) return c.choice;
+    } catch(e){}
+    return null;
+  }
+  function setConsent(choice){
+    try {
+      localStorage.setItem(CONSENT_KEY, JSON.stringify({ choice: choice, ts: Date.now() }));
+    } catch(e){}
+  }
+
+  var consent = getConsent();
+
+  // Only read a sealed fortune back if the user has accepted.
   var stored = null;
-  try {
-    stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-  } catch(e){ stored = null; }
+  if (consent === "accepted"){
+    try { stored = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e){ stored = null; }
+  }
 
   var now = Date.now();
   var record;
@@ -395,8 +459,14 @@
       ts: now,
       seen: seen
     };
+  }
+
+  function persist(){
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(record)); } catch(e){}
   }
+
+  // Already accepted? Keep the fortune sealed for the rest of the day.
+  if (consent === "accepted") persist();
 
   document.getElementById("fortuneText").textContent = fortunes[record.index];
   document.getElementById("luckyNumbers").innerHTML =
@@ -407,6 +477,25 @@
       document.getElementById("stage").classList.add("cracked");
     }, 120);
   });
+
+  // ---------- cookie consent banner ----------
+  var banner = document.getElementById("cookieBanner");
+
+  if (consent === null){
+    setTimeout(function(){ banner.classList.add("show"); }, 1400);
+
+    document.getElementById("cbAccept").addEventListener("click", function(){
+      setConsent("accepted");
+      record.ts = Date.now();   // seal for a full 24h from acceptance
+      persist();
+      banner.classList.remove("show");
+    });
+
+    document.getElementById("cbReject").addEventListener("click", function(){
+      setConsent("rejected");   // remember the choice only; no fortune stored
+      banner.classList.remove("show");
+    });
+  }
 })();
 </script>
 
